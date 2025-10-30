@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Missing Persons - {{ event.name }}</h1>
+        <a class="btn btn-info" href="{{ url_for('report_missing', event_id=event.id) }}">
+            <i class="fas fa-plus"></i> Report Missing Person
+        </a>
+    </div>
+
+    {% if missing_persons %}
+        <div class="row">
+            {% for person in missing_persons %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">{{ person.name }}{% if person.age %} ({{ person.age }}){% endif %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Status:</strong> {{ person.status }}</p>
+                            <p><strong>Description:</strong> {{ person.description }}</p>
+                            <p><strong>Last Seen:</strong> {{ person.last_seen_location }} at {{ person.last_seen_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Reported by:</strong> {{ person.reporter_name }} ({{ person.reporter_contact }})</p>
+                            <p><strong>Reported at:</strong> {{ person.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <a class="btn btn-outline-info" href="{{ url_for('missing_detail', person_id=person.id) }}" target="_self">
+                                Manage Media & Detection
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No missing persons reported for this event.</div>
+    {% endif %}
+
+    <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Back to Event</a>
+</div>
+{% endblock content %}

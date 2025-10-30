@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Incident #{{ incident.id }} - {{ incident.incident_type }}</h1>
+        <a class="btn btn-secondary" href="{{ url_for('event_incidents', event_id=event.id) }}" target="_self">Back to Incidents</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Type:</strong> {{ incident.incident_type }}</p>
+                    <p>
+                        <strong>Severity:</strong>
+                        <span class="badge {% if incident.severity == 'Critical' %}bg-danger{% elif incident.severity == 'High' %}bg-warning text-dark{% elif incident.severity == 'Medium' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                            {{ incident.severity }}
+                        </span>
+                    </p>
+                    <p><strong>Status:</strong> {{ incident.status }}</p>
+                    <p><strong>Reported At:</strong> {{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p><strong>Reported By:</strong> {{ incident.reporter.username }}</p>
+                    <p><strong>Event:</strong> <a href="{{ url_for('event', event_id=event.id) }}" target="_self">{{ event.name }}</a></p>
+                    <hr>
+                    <p><strong>Location Description:</strong> {{ incident.location_description }}</p>
+                    <p><strong>Coordinates:</strong> {{ '%.6f'|format(incident.latitude) }}, {{ '%.6f'|format(incident.longitude) }}</p>
+                    <p><strong>Description:</strong></p>
+                    <p class="mb-0">{{ incident.description }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Incident Map</h5>
+                </div>
+                <div class="card-body">
+                    <div id="incident-map" style="height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var lat = {{ incident.latitude }};
+    var lng = {{ incident.longitude }};
+    var map = L.map('incident-map').setView([lat, lng], 18);
+
+    // Define multiple tile layers
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    // Add default layer
+    osmLayer.addTo(map);
+
+    // Layer control
+    var baseMaps = {
+      "OpenStreetMap": osmLayer,
+      "Street Map": streetLayer,
+      "Satellite": satelliteLayer
+    };
+    L.control.layers(baseMaps).addTo(map);
+
+    var marker = L.marker([lat, lng]).addTo(map);
+    marker.bindPopup(`<strong>{{ incident.incident_type }}</strong><br>{{ incident.location_description }}<br>Severity: {{ incident.severity }}`);
+  });
+</script>
+{% endblock scripts %}

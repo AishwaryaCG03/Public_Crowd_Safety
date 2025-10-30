@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<div id="event-data" data-event-id="{{ event.id }}" data-latitude="{{ event.latitude }}" data-longitude="{{ event.longitude }}" style="display:none;"></div>
+<div class="content-section">
+    <h1 class="mb-4">Emergency Contacts</h1>
+    <p class="text-muted">Contacts receive alerts via selected channels when high/critical incidents are reported.</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">Add Contact</div>
+                <div class="card-body">
+                    <form method="POST" action="" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.role.label(class="form-label") }}
+                            {{ form.role(class="form-control") }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.phone.label(class="form-label") }}
+                                {{ form.phone(class="form-control") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.preferred_channels.label(class="form-label") }}
+                                {{ form.preferred_channels(class="form-select") }}
+                            </div>
+                            <div class="col-md-6 mb-3 form-check">
+                                {{ form.is_active(class="form-check-input", id="is_active") }}
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Back to Event</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">Existing Contacts</div>
+                <div class="card-body">
+                    {% if contacts %}
+                        <ul class="list-group">
+                        {% for c in contacts %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ c.name }}</strong> <span class="text-muted">{{ c.role }}</span><br>
+                                    <small>Channels: {{ c.preferred_channels }}</small><br>
+                                    {% if c.phone %}<small>SMS: {{ c.phone }}</small>{% endif %}
+                                    {% if c.email %}<small class="ms-2">Email: {{ c.email }}</small>{% endif %}
+                                </div>
+                                <form method="POST" action="{{ url_for('toggle_contact', event_id=event.id, contact_id=c.id) }}">
+                                    <button class="btn btn-sm {{ 'btn-success' if c.is_active else 'btn-secondary' }}" type="submit">
+                                        {{ 'Active' if c.is_active else 'Inactive' }}
+                                    </button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No contacts yet. Add staff or responders who should receive alerts.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock content %}

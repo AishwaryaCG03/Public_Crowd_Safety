@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <h1 class="mb-4">{{ legend or 'New Restricted Area' }}</h1>
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.name.label(class="form-control-label") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.description.label(class="form-control-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.coordinates.label(class="form-control-label") }}
+            {% if form.coordinates.errors %}
+                {{ form.coordinates(class="form-control is-invalid", rows=4, placeholder='e.g., [[lat, lng], [lat, lng], ...]') }}
+                <div class="invalid-feedback">
+                    {% for error in form.coordinates.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.coordinates(class="form-control", rows=4, placeholder='e.g., [[lat, lng], [lat, lng], ...]') }}
+            {% endif %}
+            <small class="text-muted">Enter polygon coordinates in JSON format. Example: [[12.9716, 77.5946], [12.9718, 77.5948], [12.9717, 77.5947]]</small>
+        </div>
+
+        <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-secondary") }}
+            <a class="btn btn-outline-secondary" href="{{ url_for('event', event_id=event.id) }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

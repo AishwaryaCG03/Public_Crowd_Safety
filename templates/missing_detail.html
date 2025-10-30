@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Missing Person: {{ person.name }}</h1>
+    <a class="btn btn-secondary" href="{{ url_for('event_missing', event_id=event.id) }}" target="_self">Back to Missing List</a>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Reference</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Status:</strong> {{ person.status }}</p>
+          <p><strong>Age:</strong> {{ person.age or 'N/A' }}</p>
+          <p><strong>Description:</strong> {{ person.description }}</p>
+          <p><strong>Last Seen:</strong> {{ person.last_seen_location }} at {{ person.last_seen_time.strftime('%Y-%m-%d %H:%M') }}</p>
+          <hr>
+          {% if person.image_file %}
+            <p><strong>Reference Image:</strong></p>
+            <img src="{{ url_for('static', filename=person.image_file) }}" alt="Reference Image" class="img-fluid rounded border" />
+          {% else %}
+            <p class="text-muted">No reference image provided.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Upload Evidence Media</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="" enctype="multipart/form-data" novalidate>
+            {{ media_form.hidden_tag() }}
+            <div class="mb-3">
+              {{ media_form.media.label(class="form-label") }}
+              {{ media_form.media(class="form-control") }}
+              <small class="text-muted">Allowed: jpg, jpeg, png, mp4, avi, mov</small>
+            </div>
+            {{ media_form.submit(class="btn btn-primary") }}
+          </form>
+          <hr>
+          <form method="POST" action="{{ url_for('run_detection', person_id=person.id) }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-brain"></i> Run Detection
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Uploaded Media</h5>
+        </div>
+        <div class="card-body">
+          {% if media_items %}
+            <ul class="list-group">
+              {% for m in media_items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="fas fa-file-{{ 'video' if m.media_type == 'video' else 'image' }}"></i>
+                    {{ m.media_type|capitalize }} - {{ m.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                  </span>
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('static', filename=m.file_path) }}" target="_blank">View</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No evidence media uploaded yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Detection Results</h5>
+        </div>
+        <div class="card-body">
+          {% if results %}
+            <ul class="list-group">
+              {% for r in results %}
+                <li class="list-group-item">
+                  <strong>Type:</strong> {{ r.result_type|capitalize }}
+                  {% if r.confidence %}
+                    &nbsp;|&nbsp; <strong>Confidence:</strong> {{ '%.2f'|format(r.confidence) }}
+                  {% endif %}
+                  <br>
+                  <small class="text-muted">{{ r.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                  <div class="mt-1">{{ r.details or 'No details available.' }}</div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No detection results yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

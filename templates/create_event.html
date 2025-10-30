@@ -1,0 +1,345 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">{{ legend }}</legend>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.name.label(class="form-control-label") }}
+                        {% if form.name.errors %}
+                            {{ form.name(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.name(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.date_time.label(class="form-control-label") }}
+                        {% if form.date_time.errors %}
+                            {{ form.date_time(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.date_time.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.date_time(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.objective.label(class="form-control-label") }}
+                        {% if form.objective.errors %}
+                            {{ form.objective(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.objective.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.objective(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.target_audience.label(class="form-control-label") }}
+                        {% if form.target_audience.errors %}
+                            {{ form.target_audience(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.target_audience.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.target_audience(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.venue_name.label(class="form-control-label") }}
+                        {% if form.venue_name.errors %}
+                            {{ form.venue_name(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.venue_name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.venue_name(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.venue_address.label(class="form-control-label") }}
+                        {% if form.venue_address.errors %}
+                            {{ form.venue_address(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.venue_address.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.venue_address(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Region-based location inputs -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label" for="state">State</label>
+                        <input type="text" id="state" class="form-control" placeholder="e.g., Karnataka">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label" for="district">District</label>
+                        <input type="text" id="district" class="form-control" placeholder="e.g., Bengaluru Urban">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label" for="taluk">Taluk</label>
+                        <input type="text" id="taluk" class="form-control" placeholder="e.g., Yelahanka">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label" for="location_name">Location</label>
+                        <input type="text" id="location_name" class="form-control" placeholder="Venue or landmark">
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <button type="button" id="btn-locate" class="btn btn-outline-primary me-2">Locate on Map</button>
+                <small id="geocode-status" class="text-muted"></small>
+            </div>
+            
+            <!-- Latitude/Longitude (auto-filled via map or geocoding) -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.latitude.label(class="form-control-label") }}
+                        {% if form.latitude.errors %}
+                            {{ form.latitude(class="form-control is-invalid", id="latitude") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.latitude.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.latitude(class="form-control", id="latitude") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.longitude.label(class="form-control-label") }}
+                        {% if form.longitude.errors %}
+                            {{ form.longitude(class="form-control is-invalid", id="longitude") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.longitude.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.longitude(class="form-control", id="longitude") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.ticket_price.label(class="form-control-label") }}
+                        {% if form.ticket_price.errors %}
+                            {{ form.ticket_price(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.ticket_price.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.ticket_price(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form.sponsors.label(class="form-control-label") }}
+                        {% if form.sponsors.errors %}
+                            {{ form.sponsors(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.sponsors.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.sponsors(class="form-control") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                {{ form.description.label(class="form-control-label") }}
+                {% if form.description.errors %}
+                    {{ form.description(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.description.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.description(class="form-control", rows=5) }}
+                {% endif %}
+            </div>
+        </fieldset>
+        <div class="form-group mt-4">
+            {{ form.submit(class="btn btn-primary") }}
+            <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Map Location Picker</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map (default to India for convenience)
+        var map = L.map('map').setView([20.5937, 78.9629], 5);
+        
+        // Define multiple tile layers
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+        
+        var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+        
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+        
+        // Add default layer
+        osmLayer.addTo(map);
+        
+        // Layer control
+        var baseMaps = {
+            "OpenStreetMap": osmLayer,
+            "Street Map": streetLayer,
+            "Satellite": satelliteLayer
+        };
+        
+        L.control.layers(baseMaps).addTo(map);
+        
+        var marker;
+        
+        var latInput = document.getElementById('latitude');
+        var lngInput = document.getElementById('longitude');
+        var stateInput = document.getElementById('state');
+        var districtInput = document.getElementById('district');
+        var talukInput = document.getElementById('taluk');
+        var locationInput = document.getElementById('location_name');
+        var statusEl = document.getElementById('geocode-status');
+        
+        // Check if we have existing coordinates (for edit mode)
+        var lat = latInput.value;
+        var lng = lngInput.value;
+        
+        if (lat && lng) {
+            lat = parseFloat(lat);
+            lng = parseFloat(lng);
+            map.setView([lat, lng], 15);
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+        
+        // Add click event to the map
+        map.on('click', function(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker(e.latlng).addTo(map);
+            
+            // Update form fields
+            latInput.value = e.latlng.lat.toFixed(6);
+            lngInput.value = e.latlng.lng.toFixed(6);
+            if (statusEl) statusEl.textContent = 'Selected from map';
+        });
+        
+        function geocode() {
+            // Build query from inputs: location, taluk, district, state, country
+            var parts = [];
+            if (locationInput && locationInput.value) parts.push(locationInput.value);
+            if (talukInput && talukInput.value) parts.push(talukInput.value);
+            if (districtInput && districtInput.value) parts.push(districtInput.value);
+            if (stateInput && stateInput.value) parts.push(stateInput.value);
+            parts.push('India');
+            var query = parts.filter(Boolean).join(', ');
+            
+            if (!query.trim()) {
+                if (statusEl) statusEl.textContent = 'Enter state/district/taluk or location.';
+                return;
+            }
+            if (statusEl) statusEl.textContent = 'Locating "' + query + '" ...';
+            
+            fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query))
+                .then(function(r) { return r.json(); })
+                .then(function(results) {
+                    if (results && results.length > 0) {
+                        var result = results[0];
+                        var lat = parseFloat(result.lat);
+                        var lon = parseFloat(result.lon);
+                        latInput.value = lat.toFixed(6);
+                        lngInput.value = lon.toFixed(6);
+                        if (marker) { map.removeLayer(marker); }
+                        marker = L.marker([lat, lon]).addTo(map);
+                        map.setView([lat, lon], 16);
+                        if (statusEl) statusEl.textContent = 'Located: ' + (result.display_name || query);
+                    } else {
+                        if (statusEl) statusEl.textContent = 'No match found for: ' + query;
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Geocoding error', err);
+                    if (statusEl) statusEl.textContent = 'Geocoding failed. Try refining your input.';
+                });
+        }
+        
+        var locateBtn = document.getElementById('btn-locate');
+        if (locateBtn) locateBtn.addEventListener('click', geocode);
+        [stateInput, districtInput, talukInput, locationInput].forEach(function(el){ if (el) el.addEventListener('change', geocode); });
+    });
+</script>
+{% endblock scripts %}

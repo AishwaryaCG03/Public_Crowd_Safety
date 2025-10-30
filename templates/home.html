@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="jumbotron text-center bg-light p-5 rounded">
+    <h1 class="display-4">Welcome to CrowdSafe</h1>
+    <p class="lead">A comprehensive crowd disaster prevention and management system</p>
+    <hr class="my-4">
+    <p>Organize events safely with real-time monitoring, predictive analytics, and emergency response tools.</p>
+    {% if not current_user.is_authenticated %}
+        <div class="mt-4">
+            <a class="btn btn-primary btn-lg me-2" href="{{ url_for('register') }}" role="button">Sign Up</a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ url_for('login') }}" role="button">Login</a>
+        </div>
+    {% else %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">Go to Dashboard</a>
+    {% endif %}
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x mb-3 text-primary"></i>
+                <h5 class="card-title">Predictive Analytics</h5>
+                <p class="card-text">AI-powered bottleneck analysis to predict and prevent crowd disasters before they happen.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                <h5 class="card-title">Incident Management</h5>
+                <p class="card-text">Report and track incidents in real-time with optimal response unit dispatch recommendations.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-route fa-3x mb-3 text-success"></i>
+                <h5 class="card-title">Evacuation Routes</h5>
+                <p class="card-text">Intelligent evacuation system showing the shortest and safest exit routes in emergencies.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x mb-3 text-info"></i>
+                <h5 class="card-title">Lost Person Detection</h5>
+                <p class="card-text">AI-powered system to help locate missing persons using facial recognition and pattern matching.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-map-marked-alt fa-3x mb-3 text-danger"></i>
+                <h5 class="card-title">Geofencing Alerts</h5>
+                <p class="card-text">Monitor restricted areas and receive instant notifications for unauthorized access.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-robot fa-3x mb-3 text-secondary"></i>
+                <h5 class="card-title">AI Chatbot Assistant</h5>
+                <p class="card-text">Get real-time insights and predictions about crowd conditions in any zone of your event.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

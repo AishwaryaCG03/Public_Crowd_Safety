@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <h1 class="mb-4">{{ legend or 'Report Incident' }}</h1>
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.incident_type.label(class="form-control-label") }}
+                    {% if form.incident_type.errors %}
+                        {{ form.incident_type(class="form-select is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.incident_type.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.incident_type(class="form-select") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.severity.label(class="form-control-label") }}
+                    {% if form.severity.errors %}
+                        {{ form.severity(class="form-select is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.severity.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.severity(class="form-select") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.description.label(class="form-control-label") }}
+            {% if form.description.errors %}
+                {{ form.description(class="form-control is-invalid", rows=4) }}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.description(class="form-control", rows=4) }}
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.location_description.label(class="form-control-label") }}
+                    {% if form.location_description.errors %}
+                        {{ form.location_description(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.location_description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.location_description(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group mb-3">
+                    {{ form.latitude.label(class="form-control-label") }}
+                    {% if form.latitude.errors %}
+                        {{ form.latitude(class="form-control is-invalid", id="latitude") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.latitude.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.latitude(class="form-control", id="latitude") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group mb-3">
+                    {{ form.longitude.label(class="form-control-label") }}
+                    {% if form.longitude.errors %}
+                        {{ form.longitude(class="form-control is-invalid", id="longitude") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.longitude.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.longitude(class="form-control", id="longitude") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-danger") }}
+            <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

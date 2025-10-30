@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <div id="event-data" data-event-id="{{ event.id }}" data-latitude="{{ event.latitude }}" data-longitude="{{ event.longitude }}" style="display:none;"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Evacuation Routes - {{ event.name }}</h1>
+        <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Back to Event</a>
+    </div>
+
+    <div id="evacuation-map" style="height: 70vh; width: 100%;" class="mb-3"></div>
+
+    <div class="alert alert-info">
+        This map uses your live location to route you to the nearest safe exit.
+        If location access is blocked, it will default to the venue.
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initEvacuationMap === 'function') {
+      const restrictedAreas = {{ restricted_areas|tojson }};
+      const incidents = {{ incidents|tojson }};
+      initEvacuationMap({{ event.id }}, {{ event.latitude }}, {{ event.longitude }}, restrictedAreas, incidents);
+    }
+  });
+</script>
+{% endblock scripts %}

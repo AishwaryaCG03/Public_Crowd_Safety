@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <h1 class="mb-4">{{ legend or 'Report Missing Person' }}</h1>
+    <form method="POST" action="" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.name.label(class="form-control-label") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group mb-3">
+                    {{ form.age.label(class="form-control-label") }}
+                    {% if form.age.errors %}
+                        {{ form.age(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.age.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.age(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form.description.label(class="form-control-label") }}
+            {% if form.description.errors %}
+                {{ form.description(class="form-control is-invalid", rows=4) }}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.description(class="form-control", rows=4) }}
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.last_seen_location.label(class="form-control-label") }}
+                    {% if form.last_seen_location.errors %}
+                        {{ form.last_seen_location(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.last_seen_location.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.last_seen_location(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.last_seen_time.label(class="form-control-label") }}
+                    {% if form.last_seen_time.errors %}
+                        {{ form.last_seen_time(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.last_seen_time.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.last_seen_time(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.reporter_name.label(class="form-control-label") }}
+                    {% if form.reporter_name.errors %}
+                        {{ form.reporter_name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.reporter_name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.reporter_name(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.reporter_contact.label(class="form-control-label") }}
+                    {% if form.reporter_contact.errors %}
+                        {{ form.reporter_contact(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.reporter_contact.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.reporter_contact(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form.image.label(class="form-control-label") }}
+                    {{ form.image(class="form-control", id="image") }}
+                    <small class="text-muted">Optional: Upload a recent photo (jpg/png)</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label class="form-control-label">Preview</label>
+                    <img id="image-preview" src="#" alt="Image Preview" style="max-width: 100%; display: none;" />
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-info") }}
+            <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

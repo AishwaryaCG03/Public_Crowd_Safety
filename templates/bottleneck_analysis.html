@@ -1,0 +1,300 @@
+{% extends "layout.html" %}
+{% block content %}
+<div id="event-data" data-event-id="{{ event.id }}" data-latitude="{{ event.latitude }}" data-longitude="{{ event.longitude }}" style="display:none;"></div>
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Bottleneck Analysis: {{ event.name }}</h1>
+        <a href="{{ url_for('event', event_id=event.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Event
+        </a>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Real-time Crowd Density</h4>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="live-update" checked>
+                            <label class="form-check-label" for="live-update">Live Updates</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong> High crowd density detected at Main Entrance (Zone A). Potential bottleneck forming.
+                    </div>
+                    <canvas id="densityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Zone Status</h4>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Main Entrance (Zone A)
+                            <span class="badge bg-danger rounded-pill">Critical</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Food Court (Zone B)
+                            <span class="badge bg-warning rounded-pill">Warning</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Main Stage (Zone C)
+                            <span class="badge bg-warning rounded-pill">Warning</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            VIP Area (Zone D)
+                            <span class="badge bg-success rounded-pill">Normal</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Exit Routes (Zone E)
+                            <span class="badge bg-success rounded-pill">Normal</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Predictive Analytics</h4>
+                </div>
+                <div class="card-body">
+                    <h5>20-Minute Forecast</h5>
+                    <p>Based on current trends, we predict:</p>
+                    <ul>
+                        <li><strong>Zone A:</strong> Crowd density will <span class="text-danger">increase by 25%</span></li>
+                        <li><strong>Zone B:</strong> Crowd density will <span class="text-warning">increase by 15%</span></li>
+                        <li><strong>Zone C:</strong> Crowd density will <span class="text-success">decrease by 10%</span></li>
+                    </ul>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#recommendationsModal">
+                        <i class="fas fa-lightbulb"></i> View Recommendations
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Venue Heatmap</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div id="heatmap" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Modal -->
+<div class="modal fade" id="recommendationsModal" tabindex="-1" aria-labelledby="recommendationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="recommendationsModalLabel">AI Recommendations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Immediate Actions Recommended:</h5>
+                <div class="alert alert-danger">
+                    <strong>Critical:</strong> Redirect crowd flow from Main Entrance (Zone A) by opening secondary entrance at North Gate.
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> Increase staff presence at Food Court (Zone B) to manage queues and prevent congestion.
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> Consider delaying the next scheduled performance at Main Stage (Zone C) by 15 minutes to allow crowd dispersal.
+                </div>
+                
+                <h5 class="mt-4">Long-term Recommendations:</h5>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success"></i> Implement one-way traffic flow system at Main Entrance
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success"></i> Add additional food vendors to reduce queue length at Food Court
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success"></i> Stagger performance times to prevent simultaneous crowd movements
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Implement Recommendations</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Density Chart
+        var ctx = document.getElementById('densityChart').getContext('2d');
+        var densityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00'],
+                datasets: [{
+                    label: 'Zone A (Main Entrance)',
+                    data: [20, 35, 45, 60, 75, 85, 90, 95, 98],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.4
+                }, {
+                    label: 'Zone B (Food Court)',
+                    data: [15, 25, 30, 45, 55, 65, 70, 75, 80],
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    tension: 0.4
+                }, {
+                    label: 'Zone C (Main Stage)',
+                    data: [10, 20, 40, 50, 65, 70, 75, 70, 65],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Crowd Density (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '% capacity';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Heatmap
+        var heatmapMap = L.map('heatmap').setView([{{ event.latitude }}, {{ event.longitude }}], 18);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(heatmapMap);
+        
+        // Generate some sample heatmap data around the venue
+        var lat = {{ event.latitude }};
+        var lng = {{ event.longitude }};
+        var heatData = [];
+        
+        // Main entrance (high density)
+        for (var i = 0; i < 100; i++) {
+            heatData.push([
+                lat + (Math.random() - 0.5) * 0.001,
+                lng + (Math.random() - 0.5) * 0.001,
+                Math.random() * 0.8 + 0.2 // intensity between 0.2 and 1.0
+            ]);
+        }
+        
+        // Food court (medium density)
+        for (var i = 0; i < 60; i++) {
+            heatData.push([
+                lat + (Math.random() - 0.5) * 0.001 + 0.0005,
+                lng + (Math.random() - 0.5) * 0.001 + 0.0005,
+                Math.random() * 0.6 + 0.2 // intensity between 0.2 and 0.8
+            ]);
+        }
+        
+        // Main stage (medium density)
+        for (var i = 0; i < 70; i++) {
+            heatData.push([
+                lat + (Math.random() - 0.5) * 0.001 - 0.0005,
+                lng + (Math.random() - 0.5) * 0.001 - 0.0005,
+                Math.random() * 0.6 + 0.2 // intensity between 0.2 and 0.8
+            ]);
+        }
+        
+        // Add heatmap layer
+        var heat = L.heatLayer(heatData, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 20,
+            gradient: {0.4: 'blue', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red'}
+        }).addTo(heatmapMap);
+        
+        // Add venue marker
+        var marker = L.marker([lat, lng]).addTo(heatmapMap);
+        marker.bindPopup("<b>{{ event.venue_name }}</b><br>{{ event.venue_address }}").openPopup();
+        
+        // Simulate live updates
+        var liveUpdateCheckbox = document.getElementById('live-update');
+        var updateInterval;
+        
+        function startLiveUpdates() {
+            updateInterval = setInterval(function() {
+                // Update chart data with slight variations
+                densityChart.data.datasets.forEach(function(dataset) {
+                    dataset.data = dataset.data.map(function(value) {
+                        // Add random variation between -3 and +3
+                        return Math.min(100, Math.max(0, value + (Math.random() * 6 - 3)));
+                    });
+                });
+                densityChart.update();
+                
+                // Update heatmap data
+                heat.setLatLngs(heatData.map(function(point) {
+                    return [
+                        point[0] + (Math.random() - 0.5) * 0.0001,
+                        point[1] + (Math.random() - 0.5) * 0.0001,
+                        Math.min(1, Math.max(0.1, point[2] + (Math.random() - 0.5) * 0.1))
+                    ];
+                }));
+            }, 5000); // Update every 5 seconds
+        }
+        
+        function stopLiveUpdates() {
+            clearInterval(updateInterval);
+        }
+        
+        // Toggle live updates
+        liveUpdateCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                startLiveUpdates();
+            } else {
+                stopLiveUpdates();
+            }
+        });
+        
+        // Start live updates by default
+        if (liveUpdateCheckbox.checked) {
+            startLiveUpdates();
+        }
+    });
+</script>
+{% endblock scripts %}

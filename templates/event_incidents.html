@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Incidents for {{ event.name }}</h1>
+        <a class="btn btn-danger" href="{{ url_for('new_incident', event_id=event.id) }}">
+            <i class="fas fa-plus"></i> Report New Incident
+        </a>
+    </div>
+
+    {% if incidents %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Severity</th>
+                        <th>Location</th>
+                        <th>Coordinates</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incident in incidents %}
+                    <tr>
+                        <td><a href="{{ url_for('view_incident', incident_id=incident.id) }}" target="_self" class="text-decoration-none">{{ incident.incident_type }}</a></td>
+                        <td>
+                            <span class="badge {% if incident.severity == 'Critical' %}bg-danger{% elif incident.severity == 'High' %}bg-warning text-dark{% elif incident.severity == 'Medium' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                {{ incident.severity }}
+                            </span>
+                        </td>
+                        <td>{{ incident.location_description }}</td>
+                        <td>{{ '%.6f'|format(incident.latitude) }}, {{ '%.6f'|format(incident.longitude) }}</td>
+                        <td>{{ incident.status }}</td>
+                        <td>{{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No incidents reported yet for this event.</div>
+    {% endif %}
+
+    <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}" target="_self">Back to Event</a>
+</div>
+{% endblock content %}

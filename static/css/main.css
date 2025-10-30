@@ -1,0 +1,140 @@
+body {
+    background-color: #f8f9fa;
+    color: #333;
+    padding-top: 60px;
+}
+
+.content-section {
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.site-header .navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.account-img {
+    height: 125px;
+    width: 125px;
+    margin-right: 20px;
+    margin-bottom: 16px;
+}
+
+.account-heading {
+    font-size: 2.5rem;
+}
+
+.event-card {
+    transition: transform 0.3s;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.map-container {
+    height: 400px;
+    margin-bottom: 20px;
+}
+
+.chat-container {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.chat-message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.user-message {
+    background-color: #e3f2fd;
+    margin-left: 20%;
+    margin-right: 5px;
+}
+
+.bot-message {
+    background-color: #f1f1f1;
+    margin-right: 20%;
+    margin-left: 5px;
+}
+
+.incident-high {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.incident-medium {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.incident-low {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.bottleneck-critical {
+    background-color: #dc3545;
+    color: white;
+}
+
+.bottleneck-high {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.bottleneck-medium {
+    background-color: #ffc107;
+}
+
+.bottleneck-low {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-badge {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.status-reported {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-in-progress {
+    background-color: #ffc107;
+}
+
+.status-resolved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-missing {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-found {
+    background-color: #28a745;
+    color: white;
+}
+
+.footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    background-color: #343a40;
+    color: white;
+}
