@@ -34,6 +34,9 @@
                                 <a href="{{ url_for('event_incidents', event_id=event.id) }}" class="btn btn-outline-danger">
                                     <i class="fas fa-exclamation-triangle"></i> Incidents
                                 </a>
+                                <a href="{{ url_for('checkin_dashboard', event_id=event.id) }}" class="btn btn-outline-success">
+                                    <i class="fas fa-qrcode"></i> Check-In & Capacity
+                                </a>
                             </div>
                         </div>
                     </div>

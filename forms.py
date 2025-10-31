@@ -82,3 +82,21 @@ class EmergencyContactForm(FlaskForm):
     preferred_channels = SelectField('Preferred Channels', choices=[('inapp', 'In-App'), ('email', 'Email'), ('sms', 'SMS')], validators=[DataRequired()])
     is_active = BooleanField('Active', default=True)
     submit = SubmitField('Save Contact')
+
+class ZoneForm(FlaskForm):
+    name = StringField('Zone Name', validators=[DataRequired(), Length(min=2, max=100)])
+    description = TextAreaField('Description', validators=[Optional()])
+    max_capacity = IntegerField('Max Capacity', validators=[DataRequired(), NumberRange(min=1)])
+    coordinates = TextAreaField('Coordinates (JSON)', validators=[Optional()])
+    submit = SubmitField('Create Zone')
+
+class AttendeeForm(FlaskForm):
+    name = StringField('Attendee Name', validators=[DataRequired(), Length(min=2, max=100)])
+    email = StringField('Email', validators=[Optional(), Email()])
+    phone = StringField('Phone', validators=[Optional(), Length(min=5, max=20)])
+    submit = SubmitField('Register & Generate QR')
+
+class CheckInForm(FlaskForm):
+    qr_code = StringField('QR Code', validators=[DataRequired(), Length(min=3, max=200)])
+    zone_id = IntegerField('Zone ID', validators=[DataRequired()])
+    submit = SubmitField('Check In')

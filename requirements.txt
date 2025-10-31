@@ -20,3 +20,4 @@ Flask-Mail==0.9.1
 twilio==9.2.3
 Flask-SocketIO==5.3.6
 python-socketio==5.10.0
+qrcode==7.4.2

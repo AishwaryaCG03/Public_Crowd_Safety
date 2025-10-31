@@ -152,6 +152,61 @@ function initBottleneckDashboard(eventId) {
     }
 }
 
+// Notify emergency contacts from Bottleneck Analysis panel
+function initBottleneckNotify(eventId) {
+    try {
+        const form = document.getElementById('notify-contacts-form');
+        if (!form || !eventId) return;
+        const btn = document.getElementById('notify-contacts-btn');
+        const feedback = document.getElementById('notify-feedback');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Notifying...';
+                }
+                const payload = {
+                    risk_level: document.getElementById('risk_level')?.value || 'High',
+                    message: document.getElementById('notify_message')?.value || '',
+                    latitude: parseFloat(document.getElementById('latitude')?.value || ''),
+                    longitude: parseFloat(document.getElementById('longitude')?.value || '')
+                };
+                const res = await fetch(`/event/${eventId}/bottleneck/notify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json().catch(() => ({}));
+                if (res.ok && json.ok) {
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                        feedback.className = 'alert alert-success';
+                        feedback.innerHTML = '<i class="fas fa-check-circle"></i> Contacts notified successfully.';
+                    }
+                    form.reset();
+                } else {
+                    throw new Error(json.error || 'Failed to notify contacts.');
+                }
+            } catch (err) {
+                if (feedback) {
+                    feedback.style.display = 'block';
+                    feedback.className = 'alert alert-danger';
+                    feedback.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${err.message}`;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-bullhorn"></i> Notify Emergency Contacts';
+                }
+            }
+        });
+    } catch (e) {
+        console.warn('Notify contacts init failed:', e);
+    }
+}
+
 // Evacuation Routes Map
 function initEvacuationMap(eventId, latitude, longitude, restrictedAreas = [], incidents = []) {
     const mapContainer = document.getElementById('evacuation-map');
@@ -393,6 +448,150 @@ function initEvacuationMap(eventId, latitude, longitude, restrictedAreas = [], i
     }
 }
 
+// Check-In & Capacity Dashboard
+function initCheckinDashboard(eventId) {
+    try {
+        const checkinForm = document.getElementById('checkin-form');
+        const checkoutForm = document.getElementById('checkout-form');
+        const zoneSelect = document.getElementById('zone_id');
+        const capacityTable = document.getElementById('capacity-table');
+        const feedback = document.getElementById('checkin-feedback');
+        const ctForm = document.getElementById('contact-trace-form');
+        const ctZone = document.getElementById('ct_zone_id');
+        const ctMinutes = document.getElementById('ct_minutes');
+        const ctFeedback = document.getElementById('contact-trace-feedback');
+        const ctResults = document.getElementById('contact-trace-results');
+
+        // Join event room for realtime updates
+        if (typeof io !== 'undefined' && eventId) {
+            const sock = io();
+            sock.emit('join_event', { event_id: eventId });
+            sock.on('capacity_update', (payload) => {
+                if (!capacityTable || !payload) return;
+                const row = capacityTable.querySelector(`tr[data-zone-id="${payload.zone_id}"]`);
+                if (row) {
+                    row.querySelector('.current-capacity').textContent = payload.current_capacity;
+                    row.querySelector('.capacity-percentage').textContent = `${payload.capacity_percentage.toFixed(1)}%`;
+                }
+            });
+            sock.on('alert_broadcast', (payload) => {
+                if (payload?.type === 'capacity') {
+                    const toast = document.getElementById('alert-toast');
+                    if (toast) {
+                        toast.className = 'alert alert-warning';
+                        toast.innerHTML = `<i class="fas fa-people-arrows"></i> ${payload.title}: ${payload.message}`;
+                        toast.style.display = 'block';
+                        setTimeout(() => { toast.style.display = 'none'; }, 6000);
+                    }
+                }
+            });
+        }
+
+        async function postJSON(url, payload) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.ok) throw new Error(json.error || 'Request failed');
+            return json;
+        }
+
+        if (checkinForm) {
+            checkinForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const qr = document.getElementById('qr_code').value.trim();
+                    const zid = parseInt(zoneSelect.value, 10);
+                    await postJSON(`/event/${eventId}/scan`, { qr_code: qr, zone_id: zid });
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                        feedback.className = 'alert alert-success';
+                        feedback.textContent = 'Check-in successful.';
+                        setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+                    }
+                    checkinForm.reset();
+                } catch (err) {
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                        feedback.className = 'alert alert-danger';
+                        feedback.textContent = err.message;
+                    }
+                }
+            });
+        }
+
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const qr = document.getElementById('qr_code_out').value.trim();
+                    await postJSON(`/event/${eventId}/checkout`, { qr_code: qr });
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                        feedback.className = 'alert alert-info';
+                        feedback.textContent = 'Checkout successful.';
+                        setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+                    }
+                    checkoutForm.reset();
+                } catch (err) {
+                    if (feedback) {
+                        feedback.style.display = 'block';
+                        feedback.className = 'alert alert-danger';
+                        feedback.textContent = err.message;
+                    }
+                }
+            });
+        }
+
+        if (ctForm) {
+            ctForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!ctZone || !ctMinutes) return;
+                try {
+                    const zid = parseInt(ctZone.value, 10);
+                    const mins = parseInt(ctMinutes.value, 10);
+                    const res = await fetch(`/api/event/${eventId}/contact_trace?zone_id=${zid}&minutes=${mins}`);
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok || !json.ok) throw new Error(json.error || 'Trace failed');
+                    const tbody = ctResults?.querySelector('tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                        (json.attendees || []).forEach(a => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${a.name || ''}</td>
+                                <td>${a.email || ''}</td>
+                                <td>${a.phone || ''}</td>
+                                <td>${a.check_in_time || ''}</td>
+                                <td>${a.check_out_time || ''}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                        ctResults.style.display = 'block';
+                    }
+                    if (ctFeedback) {
+                        ctFeedback.style.display = 'block';
+                        ctFeedback.className = 'alert alert-info';
+                        ctFeedback.textContent = `Found ${json.attendees?.length || 0} attendees in last ${json.minutes} minutes.`;
+                        setTimeout(() => { ctFeedback.style.display = 'none'; }, 5000);
+                    }
+                } catch (err) {
+                    if (ctFeedback) {
+                        ctFeedback.style.display = 'block';
+                        ctFeedback.className = 'alert alert-danger';
+                        ctFeedback.textContent = err.message;
+                    }
+                    if (ctResults) ctResults.style.display = 'none';
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('Init check-in dashboard failed:', e);
+    }
+}
+
 // Geofencing Restricted Areas
 function initRestrictedAreas(eventId, latitude, longitude, restrictedAreas) {
     const mapContainer = document.getElementById('restricted-areas-map');
@@ -501,6 +700,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             initRestrictedAreas(eventId, latitude, longitude, restrictedAreas);
+        }
+
+        // Notify emergency contacts panel
+        if (document.getElementById('notify-contacts-form')) {
+            initBottleneckNotify(eventId);
         }
 
         // In-app alert notifications
