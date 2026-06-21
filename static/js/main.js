@@ -592,6 +592,406 @@ function initCheckinDashboard(eventId) {
     }
 }
 
+// Live Monitoring Dashboard
+function initMonitoringDashboard(eventId) {
+    const summaryEl = document.getElementById('monitoring-summary');
+    const summaryBadgeEl = document.getElementById('monitoring-summary-badge');
+    const crowdStateEl = document.getElementById('crowd-state');
+    const crowdTrendEl = document.getElementById('crowd-trend');
+    const riskLevelEl = document.getElementById('risk-level');
+    const riskScoreEl = document.getElementById('risk-score');
+    const activeAttendeesEl = document.getElementById('active-attendees');
+    const recentCheckinsEl = document.getElementById('recent-checkins');
+    const overallOccupancyEl = document.getElementById('overall-occupancy');
+    const nearCapacityZonesEl = document.getElementById('near-capacity-zones');
+    const lastUpdatedEl = document.getElementById('monitoring-last-updated');
+    const modelNameEl = document.getElementById('model-name');
+    const modelTypeEl = document.getElementById('model-type');
+    const modelFeaturesEl = document.getElementById('model-features');
+    const likelyCausesEl = document.getElementById('likely-causes-list');
+    const recommendationsEl = document.getElementById('recommendations-list');
+    const videoForm = document.getElementById('video-analysis-form');
+    const videoModeInput = document.getElementById('source_mode');
+    const videoFileInput = document.getElementById('video_file');
+    const videoSourceInput = document.getElementById('source_url');
+    const videoSubmitBtn = document.getElementById('video-analysis-submit');
+    const videoStopBtn = document.getElementById('video-analysis-stop');
+    const videoStatusText = document.getElementById('video-analysis-status-text');
+    const videoFeedback = document.getElementById('video-analysis-feedback');
+    const videoHotspotsEl = document.getElementById('video-hotspots-list');
+    const videoPreviewFrame = document.getElementById('video-preview-frame');
+    const videoPreviewEmpty = document.getElementById('video-preview-empty');
+    const videoResultFrames = document.getElementById('video-result-frames');
+    const videoResultCurrent = document.getElementById('video-result-current');
+    const videoResultAverage = document.getElementById('video-result-average');
+    const videoResultPeak = document.getElementById('video-result-peak');
+    const videoResultsSummary = document.getElementById('video-results-summary');
+    const heatmapCanvas = document.getElementById('video-heatmap-canvas');
+    const heatmapCaption = document.getElementById('video-heatmap-caption');
+    const zoneTableBody = document.querySelector('#monitoring-zone-table tbody');
+    const trendCanvas = document.getElementById('monitoring-trend-chart');
+
+    if (!eventId || !zoneTableBody || !trendCanvas) return;
+
+    let trendChart;
+    const heatmapContext = heatmapCanvas ? heatmapCanvas.getContext('2d') : null;
+
+    const levelClassName = (value) => {
+        const normalized = (value || '').toLowerCase();
+        if (normalized === 'critical') return 'monitoring-badge critical';
+        if (normalized === 'crowded' || normalized === 'high') return 'monitoring-badge crowded';
+        if (normalized === 'busy' || normalized === 'moderate') return 'monitoring-badge busy';
+        return 'monitoring-badge normal';
+    };
+
+    const titleCase = (value) => {
+        if (!value) return '--';
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    };
+
+    const formatRelativeTime = (isoValue) => {
+        if (!isoValue) return 'Waiting for first update...';
+        const diffSeconds = Math.max(0, Math.round((Date.now() - new Date(isoValue).getTime()) / 1000));
+        if (diffSeconds < 10) return 'Updated just now';
+        if (diffSeconds < 60) return `Updated ${diffSeconds}s ago`;
+        const diffMinutes = Math.round(diffSeconds / 60);
+        return `Updated ${diffMinutes}m ago`;
+    };
+
+    const renderList = (container, items) => {
+        if (!container) return;
+        container.innerHTML = '';
+        const normalizedItems = (items || []).length ? items : ['No data available yet.'];
+        normalizedItems.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = typeof item === 'string' ? item : JSON.stringify(item);
+            container.appendChild(li);
+        });
+    };
+
+    const showVideoFeedback = (message, type) => {
+        if (!videoFeedback) return;
+        videoFeedback.style.display = 'block';
+        videoFeedback.className = `alert alert-${type}`;
+        videoFeedback.textContent = message;
+    };
+
+    const clearHeatmap = (message) => {
+        if (!heatmapContext || !heatmapCanvas) return;
+        heatmapContext.clearRect(0, 0, heatmapCanvas.width, heatmapCanvas.height);
+        heatmapContext.fillStyle = '#0f172a';
+        heatmapContext.fillRect(0, 0, heatmapCanvas.width, heatmapCanvas.height);
+        heatmapContext.fillStyle = 'rgba(255,255,255,0.08)';
+        for (let x = 0; x < heatmapCanvas.width; x += 40) {
+            heatmapContext.fillRect(x, 0, 1, heatmapCanvas.height);
+        }
+        for (let y = 0; y < heatmapCanvas.height; y += 40) {
+            heatmapContext.fillRect(0, y, heatmapCanvas.width, 1);
+        }
+        heatmapContext.fillStyle = '#cbd5e1';
+        heatmapContext.font = '14px sans-serif';
+        heatmapContext.fillText(message || 'Waiting for heatmap data...', 20, 28);
+    };
+
+    const renderHeatmap = (points) => {
+        if (!heatmapContext || !heatmapCanvas) return;
+        clearHeatmap('Analyzing live crowd distribution...');
+        const width = heatmapCanvas.width;
+        const height = heatmapCanvas.height;
+
+        (points || []).forEach((point) => {
+            const x = point.x * width;
+            const y = point.y * height;
+            const radius = 30 + (point.intensity * 45);
+            const gradient = heatmapContext.createRadialGradient(x, y, 0, x, y, radius);
+            gradient.addColorStop(0, `rgba(255, 59, 48, ${Math.min(0.8, 0.25 + point.intensity)})`);
+            gradient.addColorStop(0.45, `rgba(255, 159, 10, ${Math.min(0.45, 0.1 + point.intensity / 2)})`);
+            gradient.addColorStop(1, 'rgba(255, 205, 86, 0)');
+            heatmapContext.fillStyle = gradient;
+            heatmapContext.beginPath();
+            heatmapContext.arc(x, y, radius, 0, Math.PI * 2);
+            heatmapContext.fill();
+        });
+
+        heatmapContext.strokeStyle = 'rgba(255,255,255,0.18)';
+        heatmapContext.strokeRect(0.5, 0.5, width - 1, height - 1);
+    };
+
+    const renderVideoHotspots = (hotspots) => {
+        if (!videoHotspotsEl) return;
+        videoHotspotsEl.innerHTML = '';
+        const items = hotspots && hotspots.length
+            ? hotspots.map((spot, index) => `Hotspot ${index + 1}: intensity ${(spot.intensity * 100).toFixed(0)}% at (${spot.x.toFixed(2)}, ${spot.y.toFixed(2)})`)
+            : ['No hotspots detected yet.'];
+        items.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            videoHotspotsEl.appendChild(li);
+        });
+    };
+
+    const renderVideoAnalysis = (videoAnalysis) => {
+        const analysis = videoAnalysis || {};
+        const status = analysis.status || 'idle';
+        const progress = typeof analysis.progress === 'number' ? analysis.progress.toFixed(1) : '0.0';
+        const isLive = analysis.source_mode === 'live';
+        const hasResults = !!analysis.result_available;
+
+        if (videoStatusText) {
+            const sourceLabel = analysis.source_label ? ` Source: ${analysis.source_label}` : '';
+            const progressText = isLive
+                ? (status === 'processing' ? ' live' : '')
+                : (status === 'processing' || status === 'queued' || status === 'completed' ? ` (${progress}%)` : '');
+            videoStatusText.textContent = `${titleCase(status)}${progressText}.${sourceLabel}`;
+        }
+
+        if (heatmapCaption) {
+            heatmapCaption.textContent = analysis.message || 'Heatmap will appear once CCTV/video analysis starts.';
+        }
+
+        if (videoStopBtn) {
+            videoStopBtn.disabled = !(status === 'processing' || status === 'reconnecting' || status === 'queued');
+        }
+
+        if (analysis.preview_frame && videoPreviewFrame) {
+            videoPreviewFrame.src = analysis.preview_frame;
+            videoPreviewFrame.style.display = 'block';
+            if (videoPreviewEmpty) videoPreviewEmpty.style.display = 'none';
+        } else if (videoPreviewFrame) {
+            videoPreviewFrame.style.display = 'none';
+            if (videoPreviewEmpty) videoPreviewEmpty.style.display = 'block';
+        }
+
+        if (analysis.heatmap_points && analysis.heatmap_points.length) {
+            renderHeatmap(analysis.heatmap_points);
+        } else {
+            clearHeatmap(analysis.message || 'Waiting for heatmap data...');
+        }
+
+        renderVideoHotspots(analysis.hotspots || []);
+
+        if (videoResultFrames) videoResultFrames.textContent = analysis.analyzed_frames ?? 0;
+        if (videoResultCurrent) videoResultCurrent.textContent = analysis.latest_people_count ?? 0;
+        if (videoResultAverage) videoResultAverage.textContent = analysis.average_people_count ?? 0;
+        if (videoResultPeak) videoResultPeak.textContent = analysis.peak_people_count ?? 0;
+        if (videoResultsSummary) {
+            if (hasResults) {
+                const modeText = isLive ? 'live CCTV feed' : 'uploaded video';
+                videoResultsSummary.textContent = `Latest ${modeText} results are available. Hotspots: ${(analysis.hotspots || []).length}. Last update: ${formatRelativeTime(analysis.updated_at || analysis.finished_at)}.`;
+            } else {
+                videoResultsSummary.textContent = 'Analyzed results will stay visible here after processing completes.';
+            }
+        }
+
+        if (analysis.error) {
+            showVideoFeedback(analysis.error, 'danger');
+        }
+    };
+
+    const renderZones = (zones) => {
+        if (!zoneTableBody) return;
+        if (!zones || !zones.length) {
+            zoneTableBody.innerHTML = '<tr><td colspan="5" class="text-muted">No zones configured yet.</td></tr>';
+            return;
+        }
+
+        zoneTableBody.innerHTML = zones.map((zone) => `
+            <tr>
+                <td>
+                    <div class="fw-semibold">${zone.name}</div>
+                    <div class="small text-muted">${zone.description || 'No zone description available.'}</div>
+                </td>
+                <td><span class="${levelClassName(zone.status)}">${zone.status_label}</span></td>
+                <td>${zone.current_capacity}</td>
+                <td>${zone.max_capacity}</td>
+                <td>${zone.capacity_percentage.toFixed(1)}%</td>
+            </tr>
+        `).join('');
+    };
+
+    const renderTrendChart = (history) => {
+        const labels = (history || []).map((point) => {
+            const date = new Date(point.timestamp);
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        });
+        const occupancyData = (history || []).map((point) => point.overall_capacity_percentage);
+        const riskData = (history || []).map((point) => point.risk_score);
+
+        if (!trendChart) {
+            trendChart = new Chart(trendCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Occupancy %',
+                            data: occupancyData,
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            backgroundColor: 'rgba(13, 110, 253, 0.12)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Risk Score',
+                            data: riskData,
+                            borderColor: 'rgba(220, 53, 69, 1)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.08)',
+                            tension: 0.3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            return;
+        }
+
+        trendChart.data.labels = labels;
+        trendChart.data.datasets[0].data = occupancyData;
+        trendChart.data.datasets[1].data = riskData;
+        trendChart.update();
+    };
+
+    const renderMonitoringPayload = (payload) => {
+        if (!payload) return;
+
+        if (summaryEl) summaryEl.textContent = payload.summary || 'No monitoring summary available.';
+        if (summaryBadgeEl) {
+            summaryBadgeEl.className = levelClassName(payload.crowd_state);
+            summaryBadgeEl.textContent = payload.crowd_state || 'Unknown';
+        }
+        if (crowdStateEl) crowdStateEl.textContent = payload.crowd_state || '--';
+        if (crowdTrendEl) {
+            const delta = typeof payload.occupancy_delta === 'number' ? payload.occupancy_delta.toFixed(1) : '0.0';
+            crowdTrendEl.textContent = `Trend: ${titleCase(payload.trend)} (${delta >= 0 ? '+' : ''}${delta}%)`;
+        }
+        if (riskLevelEl) {
+            riskLevelEl.textContent = payload.risk_level || '--';
+            riskLevelEl.className = `monitoring-stat-value ${levelClassName(payload.risk_level).replace('monitoring-badge ', '')}`;
+        }
+        if (riskScoreEl) riskScoreEl.textContent = payload.risk_score ?? 0;
+        if (activeAttendeesEl) activeAttendeesEl.textContent = payload.active_attendees ?? 0;
+        if (recentCheckinsEl) recentCheckinsEl.textContent = payload.recent_checkins ?? 0;
+        if (overallOccupancyEl) overallOccupancyEl.textContent = `${(payload.overall_capacity_percentage ?? 0).toFixed(1)}%`;
+        if (nearCapacityZonesEl) nearCapacityZonesEl.textContent = payload.near_capacity_zones ?? 0;
+        if (lastUpdatedEl) lastUpdatedEl.textContent = formatRelativeTime(payload.timestamp);
+
+        if (modelNameEl) modelNameEl.textContent = payload.model?.name || 'Hybrid Crowd Risk Inference';
+        if (modelTypeEl) modelTypeEl.textContent = payload.model?.type || 'Tabular real-time event risk scoring';
+        if (modelFeaturesEl) {
+            modelFeaturesEl.textContent = (payload.model?.features || []).join(' | ');
+        }
+
+        renderList(likelyCausesEl, payload.likely_causes || []);
+        renderList(recommendationsEl, payload.recommendations || []);
+        renderZones(payload.zones || []);
+        renderTrendChart(payload.history || []);
+        renderVideoAnalysis(payload.video_analysis || {});
+    };
+
+    const fetchMonitoring = async () => {
+        const res = await fetch(`/api/event/${eventId}/monitoring`);
+        if (!res.ok) throw new Error('Unable to fetch monitoring data.');
+        return res.json();
+    };
+
+    fetchMonitoring()
+        .then(renderMonitoringPayload)
+        .catch((error) => {
+            if (summaryEl) summaryEl.textContent = error.message;
+        });
+
+    clearHeatmap('Waiting for heatmap data...');
+
+    if (videoForm) {
+        videoForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const hasFile = !!(videoFileInput && videoFileInput.files && videoFileInput.files.length);
+            const sourceUrl = videoSourceInput ? videoSourceInput.value.trim() : '';
+            const sourceMode = videoModeInput ? videoModeInput.value : 'live';
+            if (sourceMode === 'upload' && !hasFile) {
+                showVideoFeedback('Select a video file first for uploaded-video analysis.', 'warning');
+                return;
+            }
+            if (sourceMode === 'live' && !sourceUrl) {
+                showVideoFeedback('Enter a live CCTV camera URL first.', 'warning');
+                return;
+            }
+
+            try {
+                if (videoSubmitBtn) {
+                    videoSubmitBtn.disabled = true;
+                    videoSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+                }
+                const formData = new FormData();
+                if (hasFile) formData.append('video_file', videoFileInput.files[0]);
+                if (sourceUrl) formData.append('source_url', sourceUrl);
+                formData.append('source_mode', sourceMode);
+
+                const response = await fetch(`/event/${eventId}/monitoring/video`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.ok) {
+                    throw new Error(payload.error || 'Unable to start video analysis.');
+                }
+                showVideoFeedback(payload.message || 'Video AI analysis started.', 'success');
+            } catch (error) {
+                showVideoFeedback(error.message, 'danger');
+            } finally {
+                if (videoSubmitBtn) {
+                    videoSubmitBtn.disabled = false;
+                    videoSubmitBtn.innerHTML = '<i class="fas fa-video"></i> Start Video AI';
+                }
+            }
+        });
+    }
+
+    if (videoStopBtn) {
+        videoStopBtn.addEventListener('click', async () => {
+            try {
+                videoStopBtn.disabled = true;
+                const response = await fetch(`/event/${eventId}/monitoring/video/stop`, {
+                    method: 'POST'
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.ok) {
+                    throw new Error(payload.error || 'Unable to stop live video analysis.');
+                }
+                showVideoFeedback(payload.message || 'Stop request sent.', 'info');
+            } catch (error) {
+                showVideoFeedback(error.message, 'danger');
+            }
+        });
+    }
+
+    if (typeof io !== 'undefined') {
+        const socket = io();
+        socket.emit('join_event', { event_id: eventId });
+        socket.on('monitoring_update', renderMonitoringPayload);
+        socket.on('video_analysis_update', renderVideoAnalysis);
+    }
+
+    setInterval(async () => {
+        try {
+            const payload = await fetchMonitoring();
+            renderMonitoringPayload(payload);
+        } catch (error) {
+            console.warn('Monitoring refresh failed:', error);
+        }
+    }, 15000);
+}
+
 // Geofencing Restricted Areas
 function initRestrictedAreas(eventId, latitude, longitude, restrictedAreas) {
     const mapContainer = document.getElementById('restricted-areas-map');
@@ -684,6 +1084,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (document.getElementById('density-chart')) {
             initBottleneckDashboard(eventId);
+        }
+
+        if (document.getElementById('monitoring-zone-table')) {
+            initMonitoringDashboard(eventId);
         }
         
         if (document.getElementById('evacuation-map')) {

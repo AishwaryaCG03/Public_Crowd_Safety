@@ -1,6 +1,5 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, SelectField, FloatField, IntegerField, DateTimeField, DateTimeLocalField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, FloatField, IntegerField, DateTimeLocalField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional, NumberRange
 from flask_login import current_user
 from datetime import datetime
@@ -43,45 +42,6 @@ class EventForm(FlaskForm):
     sponsors = StringField('Sponsors (if applicable)', validators=[Optional(), Length(max=200)])
     description = TextAreaField('Event Description', validators=[DataRequired()])
     submit = SubmitField('Create Event')
-
-class IncidentForm(FlaskForm):
-    incident_type = SelectField('Incident Type', choices=[('Medical', 'Medical Emergency'), ('Security', 'Security Issue'), ('Other', 'Other')], validators=[DataRequired()])
-    description = TextAreaField('Incident Description', validators=[DataRequired()])
-    location_description = StringField('Location Description', validators=[DataRequired(), Length(min=2, max=200)])
-    latitude = FloatField('Latitude', validators=[DataRequired(), NumberRange(min=-90, max=90)])
-    longitude = FloatField('Longitude', validators=[DataRequired(), NumberRange(min=-180, max=180)])
-    severity = SelectField('Severity', choices=[('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High'), ('Critical', 'Critical')], validators=[DataRequired()])
-    submit = SubmitField('Report Incident')
-
-class MissingPersonForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=100)])
-    age = IntegerField('Age', validators=[Optional()])
-    description = TextAreaField('Description (clothing, appearance, etc.)', validators=[DataRequired()])
-    last_seen_location = StringField('Last Seen Location', validators=[DataRequired(), Length(min=2, max=200)])
-    last_seen_time = DateTimeLocalField('Last Seen Time', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    reporter_name = StringField('Your Name', validators=[DataRequired(), Length(min=2, max=100)])
-    reporter_contact = StringField('Your Contact Number', validators=[DataRequired(), Length(min=5, max=20)])
-    image = FileField('Upload Image (if available)', validators=[FileAllowed(['jpg', 'png'])])
-    submit = SubmitField('Report Missing Person')
-
-class MissingMediaForm(FlaskForm):
-    media = FileField('Upload Media (image/video)', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'mp4', 'avi', 'mov'])])
-    submit = SubmitField('Upload')
-
-class RestrictedAreaForm(FlaskForm):
-    name = StringField('Area Name', validators=[DataRequired(), Length(min=2, max=100)])
-    description = TextAreaField('Description', validators=[DataRequired()])
-    coordinates = TextAreaField('Coordinates (JSON format)', validators=[DataRequired()])
-    submit = SubmitField('Create Restricted Area')
-
-class EmergencyContactForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=100)])
-    role = StringField('Role', validators=[Optional(), Length(max=100)])
-    phone = StringField('Phone', validators=[Optional(), Length(min=5, max=20)])
-    email = StringField('Email', validators=[Optional(), Email()])
-    preferred_channels = SelectField('Preferred Channels', choices=[('inapp', 'In-App'), ('email', 'Email'), ('sms', 'SMS')], validators=[DataRequired()])
-    is_active = BooleanField('Active', default=True)
-    submit = SubmitField('Save Contact')
 
 class ZoneForm(FlaskForm):
     name = StringField('Zone Name', validators=[DataRequired(), Length(min=2, max=100)])

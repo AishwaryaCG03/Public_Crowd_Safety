@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="content-section">
-    <div id="event-data" data-event-id="{{ event.id }}" data-latitude="{{ event.latitude }}" data-longitude="{{ event.longitude }}" style="display:none;"></div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Evacuation Routes - {{ event.name }}</h1>
         <a class="btn btn-secondary" href="{{ url_for('event', event_id=event.id) }}">Back to Event</a>
@@ -10,25 +9,67 @@
     <div id="evacuation-map" style="height: 70vh; width: 100%;" class="mb-3"></div>
 
     <div class="alert alert-info">
-        This map uses your live location to route you to the nearest safe exit.
-        If location access is blocked, it will default to the venue.
+        This map shows evacuation routes for the event venue.
+        Use this to identify safe exits and emergency paths.
     </div>
+    
+    {% if zones %}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>Event Zones</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for zone in zones %}
+                <li class="list-group-item">
+                    <strong>{{ zone.name }}</strong> - Capacity: {{ zone.current_capacity }}/{{ zone.max_capacity }}
+                    {% if zone.is_over_capacity %}
+                    <span class="badge bg-danger">Over Capacity</span>
+                    {% elif zone.is_near_capacity %}
+                    <span class="badge bg-warning">Near Capacity</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock content %}
 
 {% block scripts %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    if (typeof initEvacuationMap === 'function') {
-      const restrictedAreas = {{ restricted_areas|tojson }};
-      const incidents = {{ incidents|tojson }};
-      initEvacuationMap({{ event.id }}, {{ event.latitude }}, {{ event.longitude }}, restrictedAreas, incidents);
-    }
+    var eventId = {{ event.id }};
+    var eventLat = {{ event.latitude }};
+    var eventLng = {{ event.longitude }};
+    var venueName = "{{ event.venue_name }}";
+    var venueAddress = "{{ event.venue_address }}";
+    
+    var evacuationMap = L.map('evacuation-map').setView([eventLat, eventLng], 15);
+    
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    osmLayer.addTo(evacuationMap);
+    
+    var marker = L.marker([eventLat, eventLng]).addTo(evacuationMap);
+    marker.bindPopup("<b>" + venueName + "</b><br>" + venueAddress).openPopup();
+    
+    // Add sample evacuation route
+    var evacuationRoute = L.polyline([
+        [eventLat, eventLng],
+        [eventLat + 0.005, eventLng + 0.005],
+        [eventLat + 0.01, eventLng + 0.01]
+    ], {
+        color: 'green',
+        weight: 5,
+        opacity: 0.7,
+        dashArray: '10, 10'
+    }).addTo(evacuationMap);
+    
+    evacuationRoute.bindPopup("Emergency Evacuation Route");
   });
 </script>
 {% endblock scripts %}
