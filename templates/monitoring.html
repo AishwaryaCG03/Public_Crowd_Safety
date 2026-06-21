@@ -1,0 +1,242 @@
+{% extends "layout.html" %}
+{% block content %}
+<div id="event-data" data-event-id="{{ event.id }}" data-latitude="{{ event.latitude }}" data-longitude="{{ event.longitude }}"></div>
+
+<div class="content-section monitoring-page">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="mb-1">{{ event.name }} Monitoring</h1>
+            <p class="text-muted mb-0">Live AI-assisted crowd visibility for this event.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('event', event_id=event.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Event Page
+            </a>
+            <a href="{{ url_for('checkin_dashboard', event_id=event.id) }}" class="btn btn-outline-success">
+                <i class="fas fa-qrcode"></i> Check-In
+            </a>
+        </div>
+    </div>
+
+    <div class="monitoring-live-banner mb-4">
+        <span class="monitoring-live-dot"></span>
+        <strong>Live Updates Active</strong>
+        <span class="text-muted ms-2" id="monitoring-last-updated">Waiting for first update...</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card monitoring-stat-card h-100">
+                <div class="card-body">
+                    <div class="monitoring-stat-label">Crowd State</div>
+                    <div class="monitoring-stat-value" id="crowd-state">--</div>
+                    <div class="monitoring-stat-subtext" id="crowd-trend">Trend: --</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card monitoring-stat-card h-100">
+                <div class="card-body">
+                    <div class="monitoring-stat-label">Risk Level</div>
+                    <div class="monitoring-stat-value" id="risk-level">--</div>
+                    <div class="monitoring-stat-subtext">AI score: <span id="risk-score">0</span>/100</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card monitoring-stat-card h-100">
+                <div class="card-body">
+                    <div class="monitoring-stat-label">Active Attendees</div>
+                    <div class="monitoring-stat-value" id="active-attendees">0</div>
+                    <div class="monitoring-stat-subtext">Recent check-ins: <span id="recent-checkins">0</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card monitoring-stat-card h-100">
+                <div class="card-body">
+                    <div class="monitoring-stat-label">Total Occupancy</div>
+                    <div class="monitoring-stat-value" id="overall-occupancy">0%</div>
+                    <div class="monitoring-stat-subtext">Near capacity zones: <span id="near-capacity-zones">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">CCTV / Video AI</h5>
+                </div>
+                <div class="card-body">
+                    <form id="video-analysis-form" class="row g-3" enctype="multipart/form-data">
+                        <div class="col-md-4">
+                            <label for="source_mode" class="form-label">Source Mode</label>
+                            <select class="form-select" id="source_mode" name="source_mode">
+                                <option value="live">Live CCTV Camera</option>
+                                <option value="upload">Uploaded Video File</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="video_file" class="form-label">Upload CCTV / Video File</label>
+                            <input type="file" class="form-control" id="video_file" name="video_file" accept=".mp4,.mov,.avi,.mkv,.webm,.m4v">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="source_url" class="form-label">Live CCTV Camera URL</label>
+                            <input type="text" class="form-control" id="source_url" name="source_url" placeholder="rtsp://user:pass@camera-ip:554/stream or http://camera/mjpeg">
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                            <button type="submit" class="btn btn-dark" id="video-analysis-submit">
+                                <i class="fas fa-video"></i> Start Video AI
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="video-analysis-stop">
+                                <i class="fas fa-stop"></i> Stop Live Feed
+                            </button>
+                            <span class="text-muted small" id="video-analysis-status-text">No CCTV/video source connected.</span>
+                        </div>
+                        <div class="col-12">
+                            <div class="small text-muted">
+                                Live CCTV examples: `rtsp://user:password@camera-ip:554/Streaming/Channels/101`, `http://camera-ip/mjpeg`, or any OpenCV-supported camera stream URL.
+                            </div>
+                        </div>
+                    </form>
+                    <div id="video-analysis-feedback" class="alert mt-3 mb-0" style="display:none"></div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Live Zone Status</h5>
+                    <span id="monitoring-summary-badge" class="badge bg-light text-dark">Loading...</span>
+                </div>
+                <div class="card-body">
+                    <p id="monitoring-summary" class="text-muted mb-3">Fetching event telemetry...</p>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="monitoring-zone-table">
+                            <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Status</th>
+                                    <th>Current</th>
+                                    <th>Max</th>
+                                    <th>Occupancy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-muted">No monitoring data yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Occupancy And Risk Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monitoring-trend-chart" height="110"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Video Crowd Heatmap</h5>
+                </div>
+                <div class="card-body">
+                    <div class="monitoring-heatmap-wrapper">
+                        <canvas id="video-heatmap-canvas" width="640" height="360"></canvas>
+                    </div>
+                    <div class="small text-muted mt-2" id="video-heatmap-caption">Heatmap will appear once CCTV/video analysis starts.</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Latest CCTV Frame</h5>
+                </div>
+                <div class="card-body">
+                    <img id="video-preview-frame" class="img-fluid rounded monitoring-preview-frame" alt="Latest CCTV analysis frame" style="display:none">
+                    <div id="video-preview-empty" class="text-muted small">No analyzed frame available yet.</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Analysis Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="monitoring-results-grid">
+                        <div class="monitoring-result-box">
+                            <div class="monitoring-result-label">Frames</div>
+                            <div class="monitoring-result-value" id="video-result-frames">0</div>
+                        </div>
+                        <div class="monitoring-result-box">
+                            <div class="monitoring-result-label">Current People</div>
+                            <div class="monitoring-result-value" id="video-result-current">0</div>
+                        </div>
+                        <div class="monitoring-result-box">
+                            <div class="monitoring-result-label">Average People</div>
+                            <div class="monitoring-result-value" id="video-result-average">0</div>
+                        </div>
+                        <div class="monitoring-result-box">
+                            <div class="monitoring-result-label">Peak People</div>
+                            <div class="monitoring-result-value" id="video-result-peak">0</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-3" id="video-results-summary">Analyzed results will stay visible here after processing completes.</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">AI Model</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong id="model-name">Hybrid Crowd Risk Inference</strong></p>
+                    <p class="text-muted small mb-2" id="model-type">Tabular real-time event risk scoring</p>
+                    <div id="model-features" class="small text-muted">Loading model inputs...</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Likely Causes</h5>
+                </div>
+                <div class="card-body">
+                    <ul id="likely-causes-list" class="monitoring-list mb-0">
+                        <li>Waiting for live inference...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Detected Hotspots</h5>
+                </div>
+                <div class="card-body">
+                    <ul id="video-hotspots-list" class="monitoring-list mb-0">
+                        <li>No hotspots detected yet.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Recommended Actions</h5>
+                </div>
+                <div class="card-body">
+                    <ul id="recommendations-list" class="monitoring-list mb-0">
+                        <li>Waiting for operational guidance...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
